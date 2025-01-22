@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leigh</title>
+    <script type="module" src="/lib/index.ts"></script>
+  </head>
+  <body>
+    <script type="module">
+      import { LeighProvider } from "./lib/index";
+
+      LeighProvider.register();
+    </script>
+
+    <leigh->
+      <!-- components in here have access to services! -->
+      <my-component></my-component>
+    </leigh->
+    <script type="module" src="/dev/my-component.ts"></script>
+  </body>
+</html>
+

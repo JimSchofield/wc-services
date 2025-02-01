@@ -1,4 +1,5 @@
-import { Klass } from './types';
+import { Service } from "./base-service";
+import { Klass } from "./types";
 
 export class GetServiceEvent<T extends Klass> extends Event {
   service: T;
@@ -8,9 +9,9 @@ export class GetServiceEvent<T extends Klass> extends Event {
   constructor(
     service: T,
     config: ConstructorParameters<T>[0],
-    callback: (instance: InstanceType<T>) => void
+    callback: (instance: InstanceType<T>) => void,
   ) {
-    super('get-service', { bubbles: true });
+    super("get-service", { bubbles: true });
 
     this.service = service;
     this.callback = callback;
@@ -19,13 +20,21 @@ export class GetServiceEvent<T extends Klass> extends Event {
 }
 
 /*
+ * A default call would be to a `render` function
+ * For lit, this would be requestUpdate
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Renderable = { render?(): any };
+
+/*
  * connects to and returns service singleton
  */
-export function service<T extends Klass, U extends HTMLElement>(
+export function service<T extends Klass, U extends HTMLElement & Renderable>(
   host: U,
   service: T,
-  notifyFn?: (service: InstanceType<T>) => void,
-  serviceConfig?: ConstructorParameters<T>
+  // Default render/update command for Dewdrop
+  notifyFn: (service: InstanceType<T>) => void = () => host.render?.(),
+  serviceConfig?: ConstructorParameters<T>,
 ) {
   let serviceReference: InstanceType<T>;
 
@@ -34,15 +43,16 @@ export function service<T extends Klass, U extends HTMLElement>(
     serviceConfig,
     (reference: InstanceType<T>) => {
       serviceReference = reference;
-    }
+    },
   );
 
-  host.dispatchEvent(serviceGetEvent);
+  window.dispatchEvent(serviceGetEvent);
 
   // @ts-expect-error This will be set by event callback
-  (serviceReference as T).__subscribers.push([host, notifyFn]);
+  if (serviceReference instanceof Service) {
+    serviceReference.addSubscriber([host, notifyFn]);
+  }
 
   // @ts-expect-error This will be set by event callback
   return serviceReference;
 }
-

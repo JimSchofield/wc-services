@@ -11,7 +11,7 @@ export default defineConfig({
       entry: resolve(__dirname, "lib/index.ts"),
       name: "Leigh",
       // the proper extensions will be added
-      fileName: "leigh",
+      fileName: "index",
     },
   },
   plugins: [dts({ tsconfigPath: "./tsconfig.json" })],

@@ -7,11 +7,21 @@ export default class LeighProvider extends HTMLElement {
   constructor() {
     super();
 
-    this.attachListener();
+    window.addEventListener(
+      "get-service",
+      this.handleGetOrInit as EventListener,
+    );
   }
 
-  attachListener() {
-    this.addEventListener("get-service", this.handleGetOrInit as EventListener);
+  disconnectedCallback() {
+    /*
+     * We attach to the window so we don't have to worry about consumers being connected
+     * to the DOM.  They can reach services even in the constructor
+     */
+    window.removeEventListener(
+      "get-service",
+      this.handleGetOrInit as EventListener,
+    );
   }
 
   handleGetOrInit = (event: GetServiceEvent<Klass>) => {
@@ -35,13 +45,9 @@ export default class LeighProvider extends HTMLElement {
     }
   };
 
-  createRenderRoot() {
-    return this;
-  }
-
-  static register() {
-    if (!customElements.get('leigh-')) {
-      customElements.define('leigh-', this);
+  static {
+    if (!customElements.get("leigh-")) {
+      customElements.define("leigh-", this);
     }
   }
 }

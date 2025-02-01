@@ -3,12 +3,14 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "files": ["dist"],
-  "main": "./dist/my-lib.umd.cjs",
-  "module": "./dist/my-lib.js",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index-lib.umd.cjs",
+  "module": "./dist/idex.js",
   "exports": {
     ".": {
-      "import": "./dist/my-lib.js",
+      "import": "./dist/index.js",
       "require": "./dist/my-lib.umd.cjs"
     }
   },
@@ -25,5 +27,8 @@
     "typescript-eslint": "^8.21.0",
     "vite": "^6.0.5",
     "vite-plugin-dts": "^4.5.0"
+  },
+  "dependencies": {
+    "lighterhtml": "^4.2.0"
   }
 }

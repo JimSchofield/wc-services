@@ -8,17 +8,15 @@
     <script type="module" src="/lib/index.ts"></script>
   </head>
   <body>
-    <script type="module">
-      import { LeighProvider } from "./lib/index";
-
-      LeighProvider.register();
-    </script>
-
+    <!-- components in here have access to services! -->
     <leigh->
-      <!-- components in here have access to services! -->
-      <my-component></my-component>
+      <product-list></product-list>
+      <my-product></my-product>
+      <shopping-cart></shopping-cart>
     </leigh->
-    <script type="module" src="/dev/my-component.ts"></script>
+
+    <script type="module" src="/lib/examples/my-product.ts"></script>
+    <script type="module" src="/lib/examples/product-list.ts"></script>
+    <script type="module" src="/lib/examples/shopping-cart.ts"></script>
   </body>
 </html>
-

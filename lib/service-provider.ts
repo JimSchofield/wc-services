@@ -3,7 +3,7 @@ import { Klass } from "./types";
 
 const services = new Map<Klass, Klass>();
 
-export default class LeighProvider extends HTMLElement {
+export default class ServiceProvider extends HTMLElement {
   constructor() {
     super();
 
@@ -46,14 +46,14 @@ export default class LeighProvider extends HTMLElement {
   };
 
   static {
-    if (!customElements.get("leigh-")) {
-      customElements.define("leigh-", this);
+    if (!customElements.get("service-provider")) {
+      customElements.define("service-provider", this);
     }
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    "leigh-": LeighProvider;
+    "service-provider": ServiceProvider;
   }
 }

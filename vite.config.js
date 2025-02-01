@@ -9,10 +9,15 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, "lib/index.ts"),
-      name: "Leigh",
+      name: "wc-services",
       // the proper extensions will be added
       fileName: "index",
     },
+    // minify: false,
+    // terserOptions: {
+    //   compress: false,
+    //   mangle: false,
+    // },
   },
   plugins: [dts({ tsconfigPath: "./tsconfig.json" })],
 });

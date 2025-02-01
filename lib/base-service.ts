@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Klass } from "./types";
+import { Constructor } from "./types";
 
-type SubRecord = [any, (service: InstanceType<Klass>) => void];
+type SubRecord = [any, (service: InstanceType<Constructor>) => void];
 
 export class Service {
+  static notificationSet = new Set<any>();
   __subscribers: SubRecord[] = [];
 
   addSubscriber(sub: SubRecord) {
@@ -16,10 +17,19 @@ export class Service {
     );
   }
 
-  notify() {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    this.__subscribers.forEach(([_host, notifyFn]) => {
+  async notify() {
+    this.__subscribers?.forEach(([host, notifyFn]) => {
+      if (Service.notificationSet.has(host)) {
+        return;
+      }
+
+      // console.log(`Notifying`, host, 'from', this);
+      Service.notificationSet.add(host);
       notifyFn(this);
     });
+
+    // Clears the notifcation set after all notifications have been dispatched
+    await 0;
+    Service.notificationSet.clear();
   }
 }

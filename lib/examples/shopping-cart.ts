@@ -38,7 +38,7 @@ export class ShoppingCart extends Component {
     return this.attachShadow({ mode: "open" });
   }
 
-  cartService = service(this, CartService);
+  cartService = service(this, CartService, () => this.notify());
 
   render() {
     return html`

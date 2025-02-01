@@ -5,8 +5,8 @@ import ProductsService from "./services/products-service.ts";
 import CartService from "./services/cart-service.ts";
 
 export class ProductList extends Component {
-  productsService = service(this, ProductsService);
-  cartService = service(this, CartService);
+  productsService = service(this, ProductsService, () => this.notify());
+  cartService = service(this, CartService, () => this.notify());
 
   selectedProduct: number = -1;
 

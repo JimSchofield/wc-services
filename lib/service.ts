@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Service } from "./base-service";
-import { Klass } from "./types";
+import { Constructor } from "./types";
 
-export class GetServiceEvent<T extends Klass> extends Event {
+export class GetServiceEvent<T extends Constructor> extends Event {
   service: T;
   config: ConstructorParameters<T>;
   callback: (instance: InstanceType<T>) => void;
@@ -20,20 +21,12 @@ export class GetServiceEvent<T extends Klass> extends Event {
 }
 
 /*
- * A default call would be to a `render` function
- * For lit, this would be requestUpdate
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Renderable = { render?(): any };
-
-/*
  * connects to and returns service singleton
  */
-export function service<T extends Klass, U extends HTMLElement & Renderable>(
-  host: U,
+export function service<T extends Constructor>(
+  host: any,
   service: T,
-  // Default render/update command for Dewdrop
-  notifyFn: (service: InstanceType<T>) => void = () => host.render?.(),
+  notifyFn: (service: InstanceType<T>) => void,
   serviceConfig?: ConstructorParameters<T>,
 ) {
   let serviceReference: InstanceType<T>;

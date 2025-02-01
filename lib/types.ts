@@ -1,3 +1,3 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type Klass = new (...args: any[]) => any;
+export type Constructor = new (...args: any[]) => any;
 

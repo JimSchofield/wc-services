@@ -8,7 +8,7 @@ export function reactive(target: any, property: PropertyKey): any {
     },
     set(v: unknown) {
       val = v;
-      target.notify();
+      this.notify();
     },
   };
 }

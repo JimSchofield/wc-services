@@ -1,4 +1,5 @@
 import { Service } from "../../base-service";
+import { reactive } from "../../decorators/reactive";
 
 export type Product = {
   id: number;
@@ -14,9 +15,9 @@ export type Product = {
 };
 
 export default class ProductsService extends Service {
-  products: Product[] = [];
+  @reactive products: Product[] = [];
 
-  selectedID = -1;
+  @reactive selectedID = -1;
 
   get selectedProduct() {
     return this.products.find(({id}) => id === this.selectedID);
@@ -33,12 +34,10 @@ export default class ProductsService extends Service {
       .then((res) => res.json())
       .then((data) => {
         this.products = data;
-        this.notify();
       });
   }
 
   selectProduct(id: number) {
     this.selectedID = id;
-    this.notify();
   }
 }

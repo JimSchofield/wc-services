@@ -1,4 +1,5 @@
 import { Service } from "../../base-service";
+import { reactive } from "../../decorators/reactive";
 import { Product } from "./products-service";
 
 type ProductInCart = {
@@ -7,12 +8,11 @@ type ProductInCart = {
 };
 
 export default class CartService extends Service {
-  isOpen = false;
-  cart: ProductInCart[] = [];
+  @reactive isOpen = false;
+  @reactive cart: ProductInCart[] = [];
 
   toggleCart() {
     this.isOpen = !this.isOpen;
-    this.notify()
   }
 
   addProduct(product?: Product) {

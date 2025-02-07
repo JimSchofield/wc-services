@@ -1,19 +1,56 @@
+import { Service } from "./base-service";
 import { GetServiceEvent } from "./service";
 import { Constructor } from "./types";
 
-const services = new Map<Constructor, Constructor>();
+export default class ServiceProvider {
+  services = new Map<Constructor, Service>();
 
-export default class ServiceProvider extends HTMLElement {
   constructor() {
-    super();
-
     window.addEventListener(
       "get-service",
       this.handleGetOrInit as EventListener,
     );
   }
 
-  disconnectedCallback() {
+  handleGetOrInit = (event: GetServiceEvent<Constructor>) => {
+    const klassDefinition = event.service;
+
+    if (this.services.has(klassDefinition)) {
+      const klassInstance = this.services.get(klassDefinition);
+
+      if (!klassInstance) {
+        throw new Error("Something went wrong with the map");
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      event.callback(klassInstance as any);
+    } else {
+      const instance = new klassDefinition();
+
+      this.services.set(klassDefinition, instance);
+
+      event.callback(instance);
+    }
+  };
+
+  /*
+   * Intended for mocking situations
+   */
+  setService(referenceClass: Constructor, instance: Service) {
+    if (this.services.has(referenceClass)) {
+      throw new Error("Class already registered");
+    } else {
+      this.services.set(referenceClass, instance);
+    }
+  }
+
+  resetServices() {
+    Array.from(this.services.values()).forEach(({ destroy }) => destroy());
+
+    this.services = new Map<Constructor, Service>();
+  }
+
+  destroy() {
     /*
      * We attach to the window so we don't have to worry about consumers being connected
      * to the DOM.  They can reach services even in the constructor
@@ -23,37 +60,24 @@ export default class ServiceProvider extends HTMLElement {
       this.handleGetOrInit as EventListener,
     );
   }
+}
 
-  handleGetOrInit = (event: GetServiceEvent<Constructor>) => {
-    const klassDefinition = event.service;
+export class ServiceProviderComponent extends HTMLElement {
+  serviceProvider: ServiceProvider;
 
-    if (services.has(klassDefinition)) {
-      const klassInstance = services.get(klassDefinition);
+  constructor() {
+    super();
 
-      if (!klassInstance) {
-        throw new Error("Something went wrong with the map");
-      }
+    this.serviceProvider = new ServiceProvider();
+  }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      event.callback(klassInstance as any);
-    } else {
-      const instance = new klassDefinition(...(event.config ? event.config : []));
-
-      services.set(klassDefinition, instance);
-
-      event.callback(instance);
-    }
-  };
-
-  static {
-    if (!customElements.get("service-provider")) {
-      customElements.define("service-provider", this);
-    }
+  disconnectedCallback() {
+    this.serviceProvider.destroy();
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    "service-provider": ServiceProvider;
+    "service-provider": ServiceProviderComponent;
   }
 }

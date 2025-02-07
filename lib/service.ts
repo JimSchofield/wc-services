@@ -4,19 +4,16 @@ import { Constructor } from "./types";
 
 export class GetServiceEvent<T extends Constructor> extends Event {
   service: T;
-  config: ConstructorParameters<T>;
   callback: (instance: InstanceType<T>) => void;
 
   constructor(
     service: T,
-    config: ConstructorParameters<T>[0],
     callback: (instance: InstanceType<T>) => void,
   ) {
     super("get-service", { bubbles: true });
 
     this.service = service;
     this.callback = callback;
-    this.config = config;
   }
 }
 
@@ -26,14 +23,12 @@ export class GetServiceEvent<T extends Constructor> extends Event {
 export function service<T extends Constructor>(
   host: any,
   service: T,
-  notifyFn: (service: InstanceType<T>) => void,
-  serviceConfig?: ConstructorParameters<T>,
+  notifyFn?: (service: InstanceType<T>) => void,
 ) {
   let serviceReference: InstanceType<T>;
 
   const serviceGetEvent = new GetServiceEvent(
     service,
-    serviceConfig,
     (reference: InstanceType<T>) => {
       serviceReference = reference;
     },
@@ -41,9 +36,11 @@ export function service<T extends Constructor>(
 
   window.dispatchEvent(serviceGetEvent);
 
+  // There may be particular cases where subscription is not desired yet,
+  // so notifyFn is technically optional
   // @ts-expect-error This will be set by event callback
-  if (serviceReference instanceof Service) {
-    serviceReference.addSubscriber([host, notifyFn]);
+  if (serviceReference instanceof Service && notifyFn) {
+    serviceReference.addSubscriber(host, notifyFn);
   }
 
   // @ts-expect-error This will be set by event callback

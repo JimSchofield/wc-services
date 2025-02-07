@@ -1,6 +1,12 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function reactive(target: any, property: PropertyKey): any {
-  let val = target[property];
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { Service } from "../base-service";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export function reactive(
+  _target: Service,
+  _propertyKey: PropertyKey,
+): any {
+  let val: any;
 
   return {
     get() {

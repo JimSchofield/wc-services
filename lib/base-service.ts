@@ -1,30 +1,31 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Constructor } from "./types";
 
-type SubRecord = [any, (service: InstanceType<Constructor>) => void];
+type notifyFn = (service: InstanceType<Constructor>) => void;
+type SubRecord = [any, notifyFn];
 
 export class Service {
   static notificationSet = new Set<any>();
   __subscribers: SubRecord[] = [];
 
-  addSubscriber(sub: SubRecord) {
-    this.__subscribers.push(sub);
+  addSubscriber(subscriber: any, notifyFn: notifyFn) {
+    this.__subscribers.push([subscriber, notifyFn]);
   }
 
-  removeSubscriber(host: any) {
+  removeSubscriber(subscriber: any) {
     this.__subscribers = this.__subscribers.filter(
-      ([h]) => h !== host,
+      ([sub]) => sub !== subscriber,
     );
   }
 
   async notify() {
-    this.__subscribers?.forEach(([host, notifyFn]) => {
-      if (Service.notificationSet.has(host)) {
+    this.__subscribers?.forEach(([subscriber, notifyFn]) => {
+      if (Service.notificationSet.has(subscriber)) {
         return;
       }
 
       // console.log(`Notifying`, host, 'from', this);
-      Service.notificationSet.add(host);
+      Service.notificationSet.add(subscriber);
       notifyFn(this);
     });
 
@@ -32,4 +33,6 @@ export class Service {
     await 0;
     Service.notificationSet.clear();
   }
+
+  destroy() {}
 }

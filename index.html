@@ -8,12 +8,14 @@
     <script type="module" src="/lib/index.ts"></script>
   </head>
   <body>
-    <!-- components in here have access to services! -->
-    <service-provider>
-      <product-list></product-list>
-      <my-product></my-product>
-      <shopping-cart></shopping-cart>
-    <service-provider>
+    <script type="module">
+      import { ServiceProvider } from "/lib/index.ts";
+
+      new ServiceProvider();
+    </script>
+    <product-list></product-list>
+    <my-product></my-product>
+    <shopping-cart></shopping-cart>
 
     <script type="module" src="/lib/examples/my-product.ts"></script>
     <script type="module" src="/lib/examples/product-list.ts"></script>

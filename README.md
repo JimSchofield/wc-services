@@ -66,6 +66,7 @@ export default MyService extends Service {
     }
 }
 ```
+> **NOTE**: You must have `"useDefineForClassFields": false,` for this decorator to work
 
 ## `service` function
 
@@ -130,3 +131,6 @@ export default MyService extends Service {
 
 Right now reactivity notifications are scheduled and multiple notifications are deduped.  This should remove any chance of circular dependencies or multiple calls to re-render by services.
 
+## Service Provider Class
+
+The service provider class allows us to set up services without including the custom element on the page.  This is useful in tests.  It also provides some methods to set up mocks for services and a way to reset services.  Example to come.

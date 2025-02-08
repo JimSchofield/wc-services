@@ -1,9 +1,9 @@
 import { Service } from "./base-service";
 import { GetServiceEvent } from "./service";
-import { Constructor } from "./types";
+import { ConstructorFrom } from "./types";
 
 export default class ServiceProvider {
-  services = new Map<Constructor, Service>();
+  services = new Map<ConstructorFrom<Service>, Service>();
 
   constructor() {
     window.addEventListener(
@@ -12,7 +12,7 @@ export default class ServiceProvider {
     );
   }
 
-  handleGetOrInit = (event: GetServiceEvent<Constructor>) => {
+  handleGetOrInit = (event: GetServiceEvent<Service>) => {
     const klassDefinition = event.service;
 
     if (this.services.has(klassDefinition)) {
@@ -22,8 +22,7 @@ export default class ServiceProvider {
         throw new Error("Something went wrong with the map");
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      event.callback(klassInstance as any);
+      event.callback(klassInstance);
     } else {
       const instance = new klassDefinition();
 
@@ -36,18 +35,35 @@ export default class ServiceProvider {
   /*
    * Intended for mocking situations
    */
-  setService(referenceClass: Constructor, instance: Service) {
+  setService(referenceClass: ConstructorFrom<Service>, instance: Service) {
     if (this.services.has(referenceClass)) {
-      throw new Error("Class already registered");
+      throw new Error("Service already registered");
     } else {
       this.services.set(referenceClass, instance);
     }
   }
 
-  resetServices() {
+  /*
+   * Intended for resetting services in tests
+   */
+  clearAllServices() {
     Array.from(this.services.values()).forEach(({ destroy }) => destroy());
 
-    this.services = new Map<Constructor, Service>();
+    this.services = new Map<ConstructorFrom<Service>, Service>();
+  }
+
+  clearService(referenceClass: ConstructorFrom<Service>) {
+    if (!this.services.has(referenceClass)) {
+      throw new Error("Service is not registered");
+    } else {
+      const instance = this.services.get(referenceClass);
+
+      if (!instance) return;
+
+      instance.destroy();
+
+      this.services.delete(referenceClass);
+    }
   }
 
   destroy() {

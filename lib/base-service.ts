@@ -1,32 +1,26 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-type notifyFn = (service: Service) => void;
-type SubRecord = [any, notifyFn];
+type SubscribeCb = (service: Service) => void;
+type SubRecord = [any, SubscribeCb];
 
 export class Service {
-  /*
-   * Used only to signify that there is new state to consume or react to
-   * Specifically, this is used internally with `useService` in react
-   */
-  __stateChanges = true;
-
-  __subscribers: SubRecord[] = [];
+  __subscribers: Set<[any, SubscribeCb]> = new Set();
 
   static notificationSet = new Set<any>();
 
-  addSubscriber(subscriber: any, notifyFn: notifyFn) {
-    this.__subscribers.push([subscriber, notifyFn]);
+  addSubscriber(subscriber: any, notifyFn: SubscribeCb) {
+    const subRecord: SubRecord = [subscriber, notifyFn];
+
+    this.__subscribers.add(subRecord);
+
+    return () => this.removeSubscriber(subRecord);
   }
 
-  removeSubscriber(subscriber: any) {
-    this.__subscribers = this.__subscribers.filter(
-      ([sub]) => sub !== subscriber,
-    );
+  removeSubscriber(notifyFn: SubRecord) {
+    this.__subscribers.delete(notifyFn);
   }
 
   async notify() {
-    this.__stateChanges = true;
-
     this.__subscribers?.forEach(([subscriber, notifyFn]) => {
       if (Service.notificationSet.has(subscriber)) {
         return;

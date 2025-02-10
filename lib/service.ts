@@ -1,14 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Service } from "./base-service";
-import { ConstructorFrom } from "./types";
+import { type Service } from "./base-service";
 
-export class GetServiceEvent<T extends Service> extends Event {
-  service: ConstructorFrom<T>;
-  callback: (instance: T) => void;
+export class GetServiceEvent<T> extends Event {
+  name: string;
+  service: T;
+  callback: (instance: T & Service) => void;
 
-  constructor(service: ConstructorFrom<T>, callback: (instance: T) => void) {
+  constructor(
+    name: string,
+    service: T,
+    callback: (instance: T & Service) => void,
+  ) {
     super("get-service", { bubbles: true });
 
+    this.name = name;
     this.service = service;
     this.callback = callback;
   }
@@ -17,23 +22,27 @@ export class GetServiceEvent<T extends Service> extends Event {
 /*
  * connects to and returns service singleton
  */
-export function service<T extends Service>(
+export function service<T extends object>(
   host: any,
-  service: ConstructorFrom<T>,
-  notifyFn?: (service: T) => void,
+  name: string,
+  service: T,
+  notifyFn?: (service: T & Service) => void,
 ) {
-  let serviceReference: T;
+  let serviceReference: T & Service;
 
-  const serviceGetEvent = new GetServiceEvent(service, (reference: T) => {
-    serviceReference = reference;
-  });
+  const serviceGetEvent = new GetServiceEvent(
+    name,
+    service,
+    (instance: T & Service) => {
+      serviceReference = instance;
+    },
+  );
 
   window.dispatchEvent(serviceGetEvent);
 
   // There may be particular cases where subscription is not desired yet,
   // so notifyFn is technically optional
-  // @ts-expect-error This will be set by event callback
-  if (serviceReference instanceof Service && notifyFn) {
+  if (notifyFn) {
     // @ts-expect-error We are not worried about similar definitions from unrelated constructors
     serviceReference.addSubscriber(host, notifyFn);
   }

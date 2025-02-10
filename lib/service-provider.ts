@@ -1,45 +1,50 @@
-import { Service } from "./base-service";
+import { makeService, Service } from "./base-service";
 import { GetServiceEvent } from "./service";
-import { ConstructorFrom } from "./types";
 
 export default class ServiceProvider {
-  services = new Map<ConstructorFrom<Service>, Service>();
+  services = new Map<string, Service>();
 
   constructor() {
     window.addEventListener(
       "get-service",
       this.handleGetOrInit as EventListener,
     );
+
+    console.log(this)
   }
 
   handleGetOrInit = (event: GetServiceEvent<Service>) => {
-    const klassDefinition = event.service;
+    const { service, name } = event;
 
-    if (this.services.has(klassDefinition)) {
-      const klassInstance = this.services.get(klassDefinition);
+    if (this.services.has(service.name)) {
+      const serviceInstance = this.services.get(service.name);
 
-      if (!klassInstance) {
+      if (!serviceInstance) {
         throw new Error("Something went wrong with the map");
       }
 
-      event.callback(klassInstance);
+      event.callback(serviceInstance);
     } else {
-      const instance = new klassDefinition();
+      const serviceInstance = makeService(name, service);
 
-      this.services.set(klassDefinition, instance);
+      if ("init" in serviceInstance && typeof serviceInstance.init === "function") {
+        serviceInstance.init();
+      }
 
-      event.callback(instance);
+      this.services.set(name, serviceInstance);
+
+      event.callback(serviceInstance);
     }
   };
 
   /*
    * Intended for mocking situations
    */
-  setService(referenceClass: ConstructorFrom<Service>, instance: Service) {
-    if (this.services.has(referenceClass)) {
+  setService(name: string, service: Service) {
+    if (this.services.has(name)) {
       throw new Error("Service already registered");
     } else {
-      this.services.set(referenceClass, instance);
+      this.services.set(name, service);
     }
   }
 
@@ -49,20 +54,20 @@ export default class ServiceProvider {
   clearAllServices() {
     Array.from(this.services.values()).forEach(({ destroy }) => destroy());
 
-    this.services = new Map<ConstructorFrom<Service>, Service>();
+    this.services = new Map<string, Service>();
   }
 
-  clearService(referenceClass: ConstructorFrom<Service>) {
-    if (!this.services.has(referenceClass)) {
+  clearService(name: string) {
+    if (!this.services.has(name)) {
       throw new Error("Service is not registered");
     } else {
-      const instance = this.services.get(referenceClass);
+      const instance = this.services.get(name);
 
       if (!instance) return;
 
       instance.destroy();
 
-      this.services.delete(referenceClass);
+      this.services.delete(name);
     }
   }
 

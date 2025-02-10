@@ -1,7 +1,7 @@
 import { html } from "lighterhtml";
 import { service } from "../index.ts";
 import Component from "./component.ts";
-import CartService from "./services/cart-service.ts";
+import { cartService } from "./services/cart-service.ts";
 
 const styles = html`
   <style>
@@ -38,7 +38,7 @@ export class ShoppingCart extends Component {
     return this.attachShadow({ mode: "open" });
   }
 
-  cartService = service(this, CartService, () => this.notify());
+  cartService = service(this, "cartService", cartService, () => this.notify());
 
   render() {
     return html`

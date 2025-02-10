@@ -1,5 +1,4 @@
-import { Service } from "../../base-service";
-import { reactive } from "../../decorators/reactive";
+import { notify } from "../../base-service";
 import { Product } from "./products-service";
 
 type ProductInCart = {
@@ -7,14 +6,13 @@ type ProductInCart = {
   count: number;
 };
 
-export default class CartService extends Service {
-  @reactive isOpen = false;
-  @reactive cart: ProductInCart[] = [];
-
+export const cartService = {
+  isOpen: false,
+  cart: [] as ProductInCart[],
   toggleCart() {
     this.isOpen = !this.isOpen;
-  }
-
+    notify(this);
+  },
   addProduct(product?: Product) {
     if (!product) return;
 
@@ -27,14 +25,12 @@ export default class CartService extends Service {
       this.cart.push({ product, count: 1 });
     }
 
-    this.notify();
-  }
-
+    notify(this);
+  },
   getProductInCard(product: Product) {
     return this.cart.find(({ product: { id } }) => product.id === id);
-  }
-
+  },
   numberInCart(product: Product) {
     return this.getProductInCard(product)?.count;
-  }
-}
+  },
+};

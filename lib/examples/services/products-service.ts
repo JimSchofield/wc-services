@@ -1,5 +1,4 @@
-import { Service } from "../../base-service";
-import { reactive } from "../../decorators/reactive";
+import { notify } from "../../base-service";
 
 export type Product = {
   id: number;
@@ -14,30 +13,25 @@ export type Product = {
   };
 };
 
-export default class ProductsService extends Service {
-  @reactive products: Product[] = [];
-
-  @reactive selectedID = -1;
-
+export const productService = {
+  products: [] as Product[],
+  selectedID: -1,
   get selectedProduct() {
     return this.products.find(({id}) => id === this.selectedID);
-  }
-
-  constructor() {
-    super();
-
+  },
+  init() {
     this.fetchProducts();
-  }
-
+  },
   fetchProducts() {
     fetch(`https://fakestoreapi.com/products`)
       .then((res) => res.json())
       .then((data) => {
         this.products = data;
+        notify(this);
       });
-  }
-
+  },
   selectProduct(id: number) {
     this.selectedID = id;
+    notify(this);
   }
 }

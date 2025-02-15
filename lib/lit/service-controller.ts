@@ -8,13 +8,13 @@ export class ServiceController implements ReactiveController {
 
   service: Service;
 
-  constructor(host: ReactiveControllerHost, serviceClass: ConstructorFrom<Service>) {
+  constructor(
+    host: ReactiveControllerHost,
+    serviceClass: ConstructorFrom<Service>,
+  ) {
     (this.host = host).addController(this);
 
     const serviceInstance = service(this.host, serviceClass);
-
-    // @ts-expect-error runtime assignment
-    this.host[propertyKey] = service;
 
     serviceInstance.addSubscriber(this.host, () => this.host.requestUpdate());
 

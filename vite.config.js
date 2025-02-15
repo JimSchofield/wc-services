@@ -11,6 +11,7 @@ export default defineConfig({
     lib: {
       entry: [
         resolve(__dirname, "./lib/index.ts"),
+        resolve(__dirname, "./lib/decorators/index.ts"),
         resolve(__dirname, "./lib/lit/index.ts"),
       ],
       formats: ['es'],
@@ -23,6 +24,7 @@ export default defineConfig({
     rollupOptions: {
       input: [
         resolve(__dirname, "./lib/index.ts"),
+        resolve(__dirname, "./lib/decorators/index.ts"),
         resolve(__dirname, "./lib/lit/index.ts"),
       ],
       output: {

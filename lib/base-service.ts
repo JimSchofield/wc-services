@@ -1,27 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-type SubscribeCb = (service: Service) => void;
-type SubRecord = [any, SubscribeCb];
+type NotifyFn = (service: Service) => void;
 
 export class Service {
-  __subscribers: Set<[any, SubscribeCb]> = new Set();
+  __subscribers = new Map<any, NotifyFn>();
 
   static notificationSet = new Set<any>();
 
-  addSubscriber(subscriber: any, notifyFn: SubscribeCb) {
-    const subRecord: SubRecord = [subscriber, notifyFn];
+  addSubscriber(subscriber: any, notifyFn: NotifyFn) {
+    this.__subscribers.set(subscriber, notifyFn);
 
-    this.__subscribers.add(subRecord);
-
-    return () => this.removeSubscriber(subRecord);
+    return () => this.removeSubscriber(subscriber);
   }
 
-  removeSubscriber(notifyFn: SubRecord) {
-    this.__subscribers.delete(notifyFn);
+  removeSubscriber(subscriber: any) {
+    this.__subscribers.delete(subscriber);
   }
 
   async notify() {
-    this.__subscribers?.forEach(([subscriber, notifyFn]) => {
+    [...this.__subscribers.entries()].forEach(([subscriber, notifyFn]) => {
       if (Service.notificationSet.has(subscriber)) {
         return;
       }
@@ -39,8 +36,8 @@ export class Service {
   }
 
   /*
-  * Overwrite to include teardown instructions.  Only called when services are reset through
-  * the service provider class
-  */
+   * Overwrite to include teardown instructions.  Only called when services are reset through
+   * the service provider class
+   */
   destroy() {}
 }

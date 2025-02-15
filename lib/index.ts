@@ -4,7 +4,6 @@ import ServiceProvider, {
 import { Service } from "./base-service.ts";
 import { service } from "./service.ts";
 import { reactive } from "./decorators/reactive.ts";
-import { serviceLit } from "./decorators/service-lit.ts";
 
 export {
   Service,
@@ -12,5 +11,4 @@ export {
   ServiceProviderComponent,
   service,
   reactive,
-  serviceLit,
 };

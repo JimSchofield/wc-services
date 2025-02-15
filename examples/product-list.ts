@@ -1,5 +1,5 @@
 import { html } from "lighterhtml";
-import { service } from "../index.ts";
+import { service } from "../lib/index.ts";
 import Component from "./component.ts";
 import ProductsService from "./services/products-service.ts";
 import CartService from "./services/cart-service.ts";

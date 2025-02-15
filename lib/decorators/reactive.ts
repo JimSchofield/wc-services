@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Service } from "../base-service";
+import type { Service } from "../base-service";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export function reactive(

@@ -1,8 +1,8 @@
 # wc-services
 
-This package provides a system to provide services to all your wonderful web components, vanilla components, framework components, and more.
+This package provides a way to use services in all your wonderful web components, vanilla components, framework components, and more.
 
-This is a work in progress.  There will be many breaking changes and API changes.
+This is a work in progress. There will be many breaking changes and API changes.
 
 ## Installation
 
@@ -57,6 +57,7 @@ export default MyService extends Service {
 ```
 
 A convenience decorator `@reactive` cuts down on the boilerplate if you have decorators available:
+
 ```js
 export default MyService extends Service {
     @reactive text = "foo";
@@ -66,31 +67,49 @@ export default MyService extends Service {
     }
 }
 ```
-> **NOTE**: You must have `"useDefineForClassFields": false,` for this decorator to work
 
-## `service` function
+> **NOTE**: You must have `"useDefineForClassFields": false,` set in your typescript configuration for this decorator to work
 
-The `service` function accepts three parameters
+## `lazyService` function
 
-1. `host: any` - the host that is calling for the service 
+The `lazyService` function accepts four parameters
+
+1. `host: any` - the host that is calling for the service
 2. `class: Constructor` - The class definition for the service you want to get
-3. `notify: () => void` - A callback called when the service updates
+3. `property: ProperyKey` - The property on the host that the store should be saved to
+4. `notify: () => void` - An callback called when the service updates
 
 For example, in a vanilla web component, it may look like this:
+
 ```js
 export default MyComponent extends HTMLElement {
-    myService = service(this, MyService, () => this.update());
+    constructor() {
+        super();
+
+        lazyService(this, "myService", MyService, () => this.update());
+        // This property is now available as `this.myService`
+    }
 
     update() {
-        //... updates after state changes
+        // called when myService notifies that state has changed
     }
 }
 ```
 
-For a Lit component, it would look like this:
+For a Lit component, there is a ReactiveController implemented. This reactive controller handles unsubscribing to the service and unsubscribing the component when disconnected:
+
 ```js
+import { ServiceConsumer } from 'wc-services/lit';
+
 export default MyComponent extends LitElement {
-    myService = service(this, MyService, () => this.requestUpdate());
+    constructor() {
+        super();
+
+        new ServiceConsumer(this, "myService", MyService);
+    }
+
+    // for Typescript
+    declare myService: MyService;
 
     render() {
         //...
@@ -98,10 +117,13 @@ export default MyComponent extends LitElement {
 }
 ```
 
-For Lit components we have a decorator to simplify this:
+For ergonomics, in Lit we have a decorator:
+
 ```ts
+import { service } "wc-services/lit";
+
 export default MyComponent extends LitElement {
-    @serviceLit(MyService)
+    @service(MyService)
     declare myService: MyService;
 
     render() {
@@ -112,11 +134,15 @@ export default MyComponent extends LitElement {
 
 ### Services can use services
 
-If you need services to use other services, this is fine.  For now, the way to make sure service services react is to use the callback `() => this.notify()`:
+If you need services to use other services, this is fine. For now, the way to make sure service services react is to use the callback `() => this.notify()`:
 
 ```js
 export default MyService extends Service {
-    otherService = service(this, OtherService, () => this.notify());
+    constructor() {
+        super();
+
+        lazyService(this, "otherService", OtherService);
+    }
 
     text = "foo";
 
@@ -127,10 +153,14 @@ export default MyService extends Service {
 }
 ```
 
-## Notes on Reactivity
+Note that `lazyService` is aware when it's being attached to a service and doesn't need to be provided a notify function.
 
-Right now reactivity notifications are scheduled and multiple notifications are deduped.  This should remove any chance of circular dependencies or multiple calls to re-render by services.
+## Notes on Reactivity and Service lifecycle
+
+Right now reactivity notifications are scheduled and multiple notifications are deduped. Also, to avoid circular dependency issues, services are lazily retrieved when they are accessed.
+
+Services are meant to be long lived and should persist through the life of an application.
 
 ## Service Provider Class
 
-The service provider class allows us to set up services without including the custom element on the page.  This is useful in tests.  It also provides some methods to set up mocks for services and a way to reset services.  Example to come.
+The service provider class allows us to set up services without including the custom element on the page. This is useful in tests. It also provides some methods to set up mocks for services and a way to reset services. Example to come.

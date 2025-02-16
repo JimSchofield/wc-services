@@ -1,5 +1,5 @@
 import { Service } from "./base-service";
-import { GetServiceEvent } from "./service";
+import { GetServiceEvent } from "./get-service-event";
 import { ConstructorFrom } from "./types";
 
 export default class ServiceProvider {

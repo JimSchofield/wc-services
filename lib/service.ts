@@ -1,26 +1,44 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Service } from "./base-service";
+import { GetServiceEvent } from "./get-service-event";
 import { ConstructorFrom } from "./types";
+import { defineLazyProperty } from "./util/lazyProperty";
 
-export class GetServiceEvent<T extends Service> extends Event {
-  service: ConstructorFrom<T>;
-  callback: (instance: T) => void;
-
-  constructor(service: ConstructorFrom<T>, callback: (instance: T) => void) {
-    super("get-service", { bubbles: true });
-
-    this.service = service;
-    this.callback = callback;
-  }
-}
-
-/*
- * connects to and returns service singleton
- */
 export function service<T extends Service>(
   host: any,
+  serviceClass: ConstructorFrom<T>,
+  notifyFn?: (serviceClass: Service) => void,
+) {
+  const instance = getServiceInstance(serviceClass);
+
+
+  if (!notifyFn && host instanceof Service) {
+    instance.addSubscriber(host, () => host.notify());
+  }
+
+  if (notifyFn) {
+    instance.addSubscriber(host, notifyFn);
+  }
+
+  return instance;
+}
+
+export function lazyService<T extends Service>(
+  host: any,
+  propertyKey: PropertyKey,
+  serviceClass: ConstructorFrom<T>,
+  notifyFn?: (service: Service) => void,
+) {
+  // console.log(`init lazy register:`, host, " subscribing to ", service.name);
+  defineLazyProperty(
+    host,
+    propertyKey,
+    service.bind(null, host, serviceClass, notifyFn),
+  );
+}
+
+export function getServiceInstance<T extends Service>(
   service: ConstructorFrom<T>,
-  notifyFn?: (service: T) => void,
 ) {
   let serviceReference: T;
 
@@ -29,14 +47,6 @@ export function service<T extends Service>(
   });
 
   window.dispatchEvent(serviceGetEvent);
-
-  // There may be particular cases where subscription is not desired yet,
-  // so notifyFn is technically optional
-  // @ts-expect-error This will be set by event callback
-  if (serviceReference instanceof Service && notifyFn) {
-    // @ts-expect-error We are not worried about similar definitions from unrelated constructors
-    serviceReference.addSubscriber(host, notifyFn);
-  }
 
   // @ts-expect-error This will be set by event callback
   return serviceReference;

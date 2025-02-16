@@ -7,10 +7,7 @@ export function service<T extends Service>(serviceClass: ConstructorFrom<T>) {
   return function (target: ReactiveElement, propertyKey: string) {
     (target.constructor as typeof ReactiveElement).addInitializer(
       (element: ReactiveElement) => {
-        const controller = new ServiceController(element, serviceClass);
-
-        // @ts-expect-error runtime assign
-        element[propertyKey] = controller.service;
+        new ServiceController(element, propertyKey, serviceClass);
       },
     );
   };

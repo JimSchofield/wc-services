@@ -20,7 +20,7 @@ export default class ProductsService extends Service {
   @reactive selectedID = -1;
 
   get selectedProduct() {
-    return this.products.find(({id}) => id === this.selectedID);
+    return this.products.find(({ id }) => id === this.selectedID);
   }
 
   constructor() {

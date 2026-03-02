@@ -1,12 +1,18 @@
 import { html } from "lighterhtml";
-import { service } from "../lib/index.ts";
+import { lazyService } from "../lib/index.ts";
 import Component from "./component.ts";
 import CartService from "./services/cart-service.ts";
 import ProductsService from "./services/products-service.ts";
 
 export class MyProduct extends Component {
-  productsService = service(this, ProductsService, () => this.notify());
-  cartService = service(this, CartService, () => this.notify());
+  constructor() {
+    super();
+
+    lazyService(this, "productsService", ProductsService, () => this.notify());
+    lazyService(this, "cartService", CartService, () => this.notify());
+  }
+  declare productsService: ProductsService;
+  declare cartService: CartService;
 
   get selected() {
     return this.productsService.selectedProduct;

@@ -1,19 +1,27 @@
 import { html } from "lighterhtml";
-import { service } from "../lib/index.ts";
+import { lazyService } from "../lib/index.ts";
 import Component from "./component.ts";
 import ProductsService from "./services/products-service.ts";
 import CartService from "./services/cart-service.ts";
 
 export class ProductList extends Component {
-  productsService = service(this, ProductsService, () => this.notify());
-  cartService = service(this, CartService, () => this.notify());
+  constructor() {
+    super();
+
+    lazyService(this, "productsService", ProductsService, () => this.notify());
+    lazyService(this, "cartService", CartService, () => this.notify());
+  }
+  declare productsService: ProductsService;
+  declare cartService: CartService;
 
   selectedProduct: number = -1;
 
   render() {
     return html`
       <div>
-        <button onclick=${() => this.cartService.toggleCart()}>Toggle Shopping Cart</button>
+        <button onclick=${() => this.cartService.toggleCart()}>
+          Toggle Shopping Cart
+        </button>
         <ul>
           ${this.productsService.products.length > 0
             ? this.productsService.products.map((product) => {

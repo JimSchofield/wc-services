@@ -1,7 +1,7 @@
 import { ReactiveController, ReactiveControllerHost } from "lit";
 import { Service } from "../base-service";
-import { getServiceInstance, lazyService } from "../service";
-import { ConstructorFrom } from "../types";
+import { lazyService } from "../service";
+import { ConstructorFrom, getServiceProvider } from "../types";
 
 export class ServiceController implements ReactiveController {
   host: ReactiveControllerHost;
@@ -13,11 +13,13 @@ export class ServiceController implements ReactiveController {
   ) {
     (this.host = host).addController(this);
 
-    lazyService(this.host, property, serviceClass, () => this.host.requestUpdate());
+    lazyService(this.host, property, serviceClass, () =>
+      this.host.requestUpdate(),
+    );
   }
 
   hostDisconnected(): void {
-    const instance = getServiceInstance(this.serviceClass);
+    const instance = getServiceProvider().getService(this.serviceClass);
 
     instance.removeSubscriber(this);
   }

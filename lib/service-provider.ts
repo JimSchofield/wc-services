@@ -1,36 +1,31 @@
 import { Service } from "./base-service";
-import { GetServiceEvent } from "./get-service-event";
-import { ConstructorFrom } from "./types";
+import { ConstructorFrom, SERVICE_PROVIDER_KEY } from "./types";
 
 export default class ServiceProvider {
   services = new Map<ConstructorFrom<Service>, Service>();
 
   constructor() {
-    window.addEventListener(
-      "get-service",
-      this.handleGetOrInit as EventListener,
-    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any)[SERVICE_PROVIDER_KEY] = this;
   }
 
-  handleGetOrInit = (event: GetServiceEvent<Service>) => {
-    const klassDefinition = event.service;
+  getService(serviceClass: ConstructorFrom<Service>) {
+    if (this.services.has(serviceClass)) {
+      const classInstance = this.services.get(serviceClass);
 
-    if (this.services.has(klassDefinition)) {
-      const klassInstance = this.services.get(klassDefinition);
-
-      if (!klassInstance) {
+      if (!classInstance) {
         throw new Error("Something went wrong with the map");
       }
 
-      event.callback(klassInstance);
+      return classInstance;
     } else {
-      const instance = new klassDefinition();
+      const instance = new serviceClass();
 
-      this.services.set(klassDefinition, instance);
+      this.services.set(serviceClass, instance);
 
-      event.callback(instance);
+      return instance;
     }
-  };
+  }
 
   /*
    * Intended for mocking situations
@@ -46,13 +41,13 @@ export default class ServiceProvider {
   /*
    * Intended for resetting services in tests
    */
-  clearAllServices() {
+  destroyAllServices() {
     Array.from(this.services.values()).forEach(({ destroy }) => destroy());
 
     this.services = new Map<ConstructorFrom<Service>, Service>();
   }
 
-  clearService(referenceClass: ConstructorFrom<Service>) {
+  destroyService(referenceClass: ConstructorFrom<Service>) {
     if (!this.services.has(referenceClass)) {
       throw new Error("Service is not registered");
     } else {
@@ -67,14 +62,10 @@ export default class ServiceProvider {
   }
 
   destroy() {
-    /*
-     * We attach to the window so we don't have to worry about consumers being connected
-     * to the DOM.  They can reach services even in the constructor
-     */
-    window.removeEventListener(
-      "get-service",
-      this.handleGetOrInit as EventListener,
-    );
+    this.destroyAllServices();
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (window as any)[SERVICE_PROVIDER_KEY];
   }
 }
 

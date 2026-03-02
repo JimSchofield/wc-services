@@ -1,5 +1,5 @@
 import { html } from "lighterhtml";
-import { service } from "../lib/index.ts";
+import { lazyService } from "../lib/index.ts";
 import Component from "./component.ts";
 import CartService from "./services/cart-service.ts";
 
@@ -25,7 +25,7 @@ const styles = html`
       padding: 0;
     }
     .cart--item {
-      padding: .5em 0;
+      padding: 0.5em 0;
       display: flex;
       justify-content: space-between;
       gap: 2em;
@@ -38,7 +38,13 @@ export class ShoppingCart extends Component {
     return this.attachShadow({ mode: "open" });
   }
 
-  cartService = service(this, CartService, () => this.notify());
+  constructor() {
+    super();
+
+    lazyService(this, "cartService", CartService, () => this.notify());
+  }
+
+  declare cartService: CartService;
 
   render() {
     return html`

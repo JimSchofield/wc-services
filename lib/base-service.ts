@@ -1,43 +1,39 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 type NotifyFn = (service: Service) => void;
 
 export class Service {
-  __subscribers = new Map<any, NotifyFn>();
+  __subscribers = new Map<unknown, NotifyFn>();
 
-  static notificationSet = new Set<any>();
+  static notificationSet = new Set<unknown>();
 
-  addSubscriber(subscriber: any, notifyFn: NotifyFn) {
+  addSubscriber(subscriber: unknown, notifyFn: NotifyFn) {
     this.__subscribers.set(subscriber, notifyFn);
 
     return () => this.removeSubscriber(subscriber);
   }
 
-  removeSubscriber(subscriber: any) {
+  removeSubscriber(subscriber: unknown) {
     this.__subscribers.delete(subscriber);
   }
 
-  async notify() {
-    [...this.__subscribers.entries()].forEach(([subscriber, notifyFn]) => {
+  notify() {
+    for (const [subscriber, notifyFn] of this.__subscribers) {
       if (Service.notificationSet.has(subscriber)) {
-        return;
+        continue;
       }
 
-      // console.log(`Notifying`, host, 'from', this);
       Service.notificationSet.add(subscriber);
 
       notifyFn(this);
+    }
+
+    queueMicrotask(() => {
+      Service.notificationSet.clear();
     });
-
-    // Clears the notifcation set after all notifications have been dispatched
-    await 0;
-
-    Service.notificationSet.clear();
   }
 
   /*
-   * Overwrite to include teardown instructions.  Only called when services are reset through
-   * the service provider class
+   * Overwrite to include teardown instructions.  Only called when
+   * services are reset through the service provider class
    */
   destroy() {}
 }

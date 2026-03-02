@@ -1,4 +1,4 @@
-import { reactive } from '../../lib/decorators/reactive';
+import { reactive } from "../../lib/decorators/reactive";
 import { Service } from "../../lib/base-service";
 import { Product } from "./products-service";
 

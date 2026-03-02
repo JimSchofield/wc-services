@@ -1,16 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Service } from "./base-service";
-import { GetServiceEvent } from "./get-service-event";
-import { ConstructorFrom } from "./types";
+import { ConstructorFrom, getServiceProvider } from "./types";
 import { defineLazyProperty } from "./util/lazyProperty";
+
+export function getService<T extends Service>(
+  serviceClass: ConstructorFrom<T>,
+): T {
+  return getServiceProvider().getService(serviceClass) as T;
+}
 
 export function service<T extends Service>(
   host: any,
   serviceClass: ConstructorFrom<T>,
   notifyFn?: (serviceClass: Service) => void,
 ) {
-  const instance = getServiceInstance(serviceClass);
-
+  const instance = getService(serviceClass);
 
   if (!notifyFn && host instanceof Service) {
     instance.addSubscriber(host, () => host.notify());
@@ -35,19 +39,4 @@ export function lazyService<T extends Service>(
     propertyKey,
     service.bind(null, host, serviceClass, notifyFn),
   );
-}
-
-export function getServiceInstance<T extends Service>(
-  service: ConstructorFrom<T>,
-) {
-  let serviceReference: T;
-
-  const serviceGetEvent = new GetServiceEvent(service, (reference: T) => {
-    serviceReference = reference;
-  });
-
-  window.dispatchEvent(serviceGetEvent);
-
-  // @ts-expect-error This will be set by event callback
-  return serviceReference;
 }

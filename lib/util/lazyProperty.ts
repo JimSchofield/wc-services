@@ -1,6 +1,9 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function defineLazyProperty(host: any, propertyKey: PropertyKey, fn: () => any) {
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export function defineLazyProperty(
+  host: any,
+  propertyKey: PropertyKey,
+  fn: () => any,
+) {
   Object.defineProperty(host, propertyKey, {
     get() {
       const result = fn();

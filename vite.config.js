@@ -14,7 +14,7 @@ export default defineConfig({
         resolve(__dirname, "./lib/decorators/index.ts"),
         resolve(__dirname, "./lib/lit/index.ts"),
       ],
-      formats: ['es'],
+      formats: ["es"],
     },
     minify: false,
     terserOptions: {
@@ -32,9 +32,10 @@ export default defineConfig({
       },
     },
   },
-  plugins: [dts({ 
-    tsconfigPath: "./tsconfig.json",
-    include: "lib",
-
-  })],
+  plugins: [
+    dts({
+      tsconfigPath: "./tsconfig.json",
+      include: "lib",
+    }),
+  ],
 });

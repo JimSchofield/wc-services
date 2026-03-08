@@ -9,7 +9,7 @@ export function getService<T extends Service>(
   return getServiceProvider().getService(serviceClass) as T;
 }
 
-export function service<T extends Service>(
+export function setService<T extends Service>(
   host: any,
   serviceClass: ConstructorFrom<T>,
   notifyFn?: (serviceClass: Service) => void,
@@ -37,6 +37,6 @@ export function lazyService<T extends Service>(
   defineLazyProperty(
     host,
     propertyKey,
-    service.bind(null, host, serviceClass, notifyFn),
+    setService.bind(null, host, serviceClass, notifyFn),
   );
 }

@@ -1,5 +1,5 @@
 import { html } from "lighterhtml";
-import { lazyService } from "../lib/index.ts";
+import { service } from "../lib/decorators/service.ts";
 import Component from "./component.ts";
 import CartService from "./services/cart-service.ts";
 
@@ -38,12 +38,7 @@ export class ShoppingCart extends Component {
     return this.attachShadow({ mode: "open" });
   }
 
-  constructor() {
-    super();
-
-    lazyService(this, "cartService", CartService, () => this.notify());
-  }
-
+  @service(CartService, (host: ShoppingCart) => host.notify())
   declare cartService: CartService;
 
   render() {

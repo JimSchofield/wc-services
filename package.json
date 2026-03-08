@@ -1,6 +1,6 @@
 {
   "name": "wc-services",
-  "version": "0.1.11",
+  "version": "0.2.0",
   "type": "module",
   "files": [
     "dist"
@@ -15,9 +15,13 @@
       "import": "./dist/lit/index.js",
       "types": "./dist/lit/index.d.ts"
     },
-    "./decorators": {
-      "import": "./dist/decorators/index.js",
-      "types": "./dist/decorators/index.d.ts"
+    "./vanilla": {
+      "import": "./dist/decorators/service.js",
+      "types": "./dist/decorators/service.d.ts"
+    },
+    "./service": {
+      "import": "./dist/decorators/service-to-service.js",
+      "types": "./dist/decorators/service-to-service.d.ts"
     }
   },
   "scripts": {

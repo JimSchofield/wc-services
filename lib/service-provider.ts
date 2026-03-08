@@ -4,6 +4,13 @@ import { ConstructorFrom, SERVICE_PROVIDER_KEY } from "./types";
 export default class ServiceProvider {
   services = new Map<ConstructorFrom<Service>, Service>();
 
+  static setup() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const existing = (window as any)[SERVICE_PROVIDER_KEY];
+    if (existing) return existing as ServiceProvider;
+    return new ServiceProvider();
+  }
+
   constructor() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any)[SERVICE_PROVIDER_KEY] = this;
@@ -42,7 +49,9 @@ export default class ServiceProvider {
    * Intended for resetting services in tests
    */
   destroyAllServices() {
-    Array.from(this.services.values()).forEach(({ destroy }) => destroy());
+    for (const service of this.services.values()) {
+      service.destroy();
+    }
 
     this.services = new Map<ConstructorFrom<Service>, Service>();
   }
@@ -66,25 +75,5 @@ export default class ServiceProvider {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (window as any)[SERVICE_PROVIDER_KEY];
-  }
-}
-
-export class ServiceProviderComponent extends HTMLElement {
-  serviceProvider: ServiceProvider;
-
-  constructor() {
-    super();
-
-    this.serviceProvider = new ServiceProvider();
-  }
-
-  disconnectedCallback() {
-    this.serviceProvider.destroy();
-  }
-}
-
-declare global {
-  interface HTMLElementTagNameMap {
-    "service-provider": ServiceProviderComponent;
   }
 }

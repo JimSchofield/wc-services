@@ -1,9 +1,10 @@
-import { describe, test, expect, beforeEach, afterEach } from "vitest";
+import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import { LitElement, html as litHtml } from "lit";
 import ServiceProvider from "../lib/service-provider";
 import { Service } from "../lib/base-service";
 import { lazyService } from "../lib/service";
-import { service } from "../lib/lit/service-decorator";
+import { service as litService } from "../lib/lit/service-decorator";
+import { service } from "../lib/decorators/service";
 import { reactive } from "../lib/decorators/reactive";
 
 class CounterService extends Service {
@@ -23,6 +24,7 @@ class VanillaCounter extends HTMLElement {
     super();
     lazyService(this, "counter", CounterService, () => this.update());
   }
+
   declare counter: CounterService;
 
   connectedCallback() {
@@ -38,7 +40,7 @@ class VanillaCounter extends HTMLElement {
 // --- Lit web component using @service decorator ---
 
 class LitCounter extends LitElement {
-  @service(CounterService)
+  @litService(CounterService)
   declare counter: CounterService;
 
   renderCount = 0;
@@ -49,9 +51,41 @@ class LitCounter extends LitElement {
   }
 }
 
+// --- Vanilla web component using @service decorator ---
+
+class DecoratedCounter extends HTMLElement {
+  @service(CounterService, (host: DecoratedCounter) => host.update())
+  declare counter: CounterService;
+
+  renderCount = 0;
+
+  update() {
+    this.renderCount++;
+    this.innerHTML = `<span class="count">${this.counter.count}</span>`;
+  }
+}
+
+class NameService extends Service {
+  @reactive name = "world";
+}
+
+class MultiServiceEl extends HTMLElement {
+  @service(CounterService, (host: MultiServiceEl) => host.update())
+  declare counter: CounterService;
+
+  @service(NameService, (host: MultiServiceEl) => host.update())
+  declare names: NameService;
+
+  update() {
+    this.innerHTML = `<span class="output">${this.names.name}: ${this.counter.count}</span>`;
+  }
+}
+
 // Use unique tag names per test file to avoid duplicate registration
 customElements.define("vanilla-counter-test", VanillaCounter);
 customElements.define("lit-counter-test", LitCounter);
+customElements.define("decorated-counter-test", DecoratedCounter);
+customElements.define("multi-service-test", MultiServiceEl);
 
 function waitForUpdate(): Promise<void> {
   return new Promise((resolve) => requestAnimationFrame(() => resolve()));
@@ -185,6 +219,77 @@ describe("Lit web component with @service decorator", () => {
     } finally {
       vanilla.remove();
       lit.remove();
+    }
+  });
+});
+
+describe("Vanilla web component with @service decorator", () => {
+  let provider: ServiceProvider;
+
+  beforeEach(() => {
+    provider = new ServiceProvider();
+  });
+
+  afterEach(() => {
+    provider.destroy();
+  });
+
+  test("renders with service data and re-renders on notify", async () => {
+    const el = document.createElement(
+      "decorated-counter-test",
+    ) as DecoratedCounter;
+    document.body.appendChild(el);
+
+    try {
+      expect(el.querySelector(".count")!.textContent).toBe("0");
+
+      el.counter.increment();
+      await waitForUpdate();
+
+      expect(el.querySelector(".count")!.textContent).toBe("1");
+      expect(el.renderCount).toBeGreaterThan(1);
+    } finally {
+      el.remove();
+    }
+  });
+
+  test("tears down subscription on disconnect", async () => {
+    const el = document.createElement(
+      "decorated-counter-test",
+    ) as DecoratedCounter;
+    document.body.appendChild(el);
+
+    const updateSpy = vi.spyOn(el, "update");
+
+    // Disconnect the element
+    el.remove();
+    updateSpy.mockClear();
+
+    // Notify after disconnect — should not call update
+    el.counter.increment();
+    await waitForUpdate();
+
+    expect(updateSpy).not.toHaveBeenCalled();
+  });
+
+  test("multiple decorated properties on the same component", async () => {
+    const el = document.createElement("multi-service-test") as MultiServiceEl;
+    document.body.appendChild(el);
+
+    try {
+      expect(el.querySelector(".output")!.textContent).toBe("world: 0");
+
+      el.counter.increment();
+      await waitForUpdate();
+
+      expect(el.querySelector(".output")!.textContent).toBe("world: 1");
+
+      el.names.name = "hello";
+      await waitForUpdate();
+
+      expect(el.querySelector(".output")!.textContent).toBe("hello: 1");
+    } finally {
+      el.remove();
     }
   });
 });

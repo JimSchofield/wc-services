@@ -1,5 +1,4 @@
-import { Service } from "../../lib/base-service";
-import { reactive } from "../../lib/decorators/reactive";
+import { reactive, Service } from "../../lib/index";
 
 export type Product = {
   id: number;

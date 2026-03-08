@@ -4,6 +4,7 @@ import { Service } from "../lib/base-service";
 import { getService, lazyService } from "../lib/service";
 import { getServiceProvider } from "../lib/types";
 import { reactive } from "../lib/decorators/reactive";
+import { service as serviceToService } from "../lib/decorators/service-to-service";
 
 describe("Integration", () => {
   let provider: ServiceProvider;
@@ -219,5 +220,69 @@ describe("Integration", () => {
 
     expect(parentCallback).toHaveBeenCalled();
     expect(parent.child.value).toBe(42);
+  });
+
+  test("@serviceToService auto-wires notify and propagates changes", async () => {
+    class DepService extends Service {
+      @reactive value = "initial";
+    }
+
+    class HostService extends Service {
+      @serviceToService(DepService)
+      declare dep: DepService;
+    }
+
+    const hostCallback = vi.fn();
+    const host = provider.getService(HostService);
+    host.addSubscriber("test", hostCallback);
+
+    host.dep.value = "changed";
+
+    await new Promise((resolve) => queueMicrotask(resolve));
+
+    expect(hostCallback).toHaveBeenCalled();
+    expect(host.dep.value).toBe("changed");
+  });
+
+  test("@serviceToService tears down subscription on destroy", () => {
+    class DepService extends Service {
+      @reactive value = 0;
+    }
+
+    class HostService extends Service {
+      @serviceToService(DepService)
+      declare dep: DepService;
+    }
+
+    const host = provider.getService(HostService);
+    const dep = host.dep;
+
+    expect(dep.__subscribers.size).toBe(1);
+
+    host.destroy();
+
+    expect(dep.__subscribers.size).toBe(0);
+  });
+
+  test("@serviceToService chains destroy with existing destroy logic", () => {
+    class DepService extends Service {}
+
+    const customDestroy = vi.fn();
+
+    class HostService extends Service {
+      @serviceToService(DepService)
+      declare dep: DepService;
+
+      destroy() {
+        customDestroy();
+      }
+    }
+
+    const host = provider.getService(HostService);
+    void host.dep; // trigger lazy init
+
+    host.destroy();
+
+    expect(customDestroy).toHaveBeenCalled();
   });
 });

@@ -1,17 +1,14 @@
 import { html } from "lighterhtml";
-import { lazyService } from "../lib/index.ts";
+import { service } from "../lib/decorators/service.ts";
 import Component from "./component.ts";
 import ProductsService from "./services/products-service.ts";
 import CartService from "./services/cart-service.ts";
 
 export class ProductList extends Component {
-  constructor() {
-    super();
-
-    lazyService(this, "productsService", ProductsService, () => this.notify());
-    lazyService(this, "cartService", CartService, () => this.notify());
-  }
+  @service(ProductsService, (host: ProductList) => host.notify())
   declare productsService: ProductsService;
+
+  @service(CartService, (host: ProductList) => host.notify())
   declare cartService: CartService;
 
   selectedProduct: number = -1;

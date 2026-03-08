@@ -1,5 +1,4 @@
-import { reactive } from "../../lib/decorators/reactive";
-import { Service } from "../../lib/base-service";
+import { reactive, Service } from "../../lib/index";
 import { Product } from "./products-service";
 
 type ProductInCart = {

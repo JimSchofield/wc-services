@@ -2,12 +2,22 @@
 
 This package provides a way to use services in all your wonderful web components, vanilla components, framework components, and more.
 
+Features:
+
+- Services are only created when first accessed, not at registration time (lazy!)
+- Works with vanilla web components, Lit, anywhere!
+- Batches notification updates for efficient reactivity
+- The `@reactive` decorator turns service properties into auto-notifying setters with zero boilerplate
+- The `@service` decorators make subscribing with vanilla web components, lit web components, or just other services easy
+- Services can subscribe to other services with automatic lifecycle management
+- Built-in test support
+
 This is a work in progress. There will be many breaking changes and API changes.
 
 ## Installation
 
 1. Run `npm i wc-services`
-2. Add `<service-provider></service-provider>` on the main page of your application. Generally, putting it at the top of your `index.html` is fine, or at the root of your framework mount point.
+2. Call `ServiceProvider.setup()` at the entry point of your application before any components are created
 
 ## Guide
 
@@ -21,7 +31,7 @@ export default MyService extends Service {
 }
 ```
 
-In your services, to let components know if there's been a state change you will need to call `this.notify()`:
+In your services, to let components know there's been a state change, call `this.notify()`:
 
 ```js
 export default MyService extends Service {
@@ -41,16 +51,16 @@ export default MyService extends Service {
     _text = "foo";
 
     get text() {
-        return text;
+        return this._text;
     }
 
     set text(val) {
-        this.text = val;
+        this._text = val;
         this.notify();
     }
 
     changeText() {
-        // Don't need to notify, as any setting calls `this.notify()`
+        // Don't need to notify here, as the setter above calls `this.notify()`
         this.text = "bar";
     }
 }
@@ -70,14 +80,16 @@ export default MyService extends Service {
 
 > **NOTE**: You must have `"useDefineForClassFields": false,` set in your typescript configuration for this decorator to work
 
-## `lazyService` function
+## Subscribing to a service
 
-The `lazyService` function accepts four parameters
+### `lazyService` function
+
+The `lazyService` function sets up a service as a property on your component. The service is not instantiated until the host component actually accesses the property. It accepts four parameters:
 
 1. `host: any` - the host that is calling for the service
 2. `class: Constructor` - The class definition for the service you want to get
-3. `property: ProperyKey` - The property on the host that the store should be saved to
-4. `notify: () => void` - An callback called when the service updates
+3. `property: PropertyKey` - The property on the host that the service should be saved to
+4. `notify: () => void` - A callback called when the service updates
 
 For example, in a vanilla web component, it may look like this:
 
@@ -96,31 +108,29 @@ export default MyComponent extends HTMLElement {
 }
 ```
 
-For a Lit component, there is a ReactiveController implemented. This reactive controller handles unsubscribing to the service and unsubscribing the component when disconnected:
+### Subscribing in a vanilla web component
 
-```js
-import { ServiceConsumer } from 'wc-services/lit';
+For ergonomics, if you have decorators available, there is a `@service` decorator for vanilla web components. It sets up the service subscription on connect and tears it down on disconnect:
 
-export default MyComponent extends LitElement {
-    constructor() {
-        super();
+```ts
+import { service } from "wc-services/vanilla";
 
-        new ServiceConsumer(this, "myService", MyService);
-    }
-
-    // for Typescript
+export default MyComponent extends HTMLElement {
+    @service(MyService, (host) => host.update())
     declare myService: MyService;
 
-    render() {
-        //...
+    update() {
+        // called when myService notifies that state has changed
     }
 }
 ```
 
-For ergonomics, in Lit we have a decorator:
+### Subscribing in a Lit web component
+
+For Lit, there is a decorator that handles setup and teardown using a Lit controller.
 
 ```ts
-import { service } "wc-services/lit";
+import { service } from "wc-services/lit";
 
 export default MyComponent extends LitElement {
     @service(MyService)
@@ -132,9 +142,7 @@ export default MyComponent extends LitElement {
 }
 ```
 
-### Services can use services
-
-If you need services to use other services, this is fine. For now, the way to make sure service services react is to use the callback `() => this.notify()`:
+### Subscribing in another service
 
 ```js
 export default MyService extends Service {
@@ -155,12 +163,62 @@ export default MyService extends Service {
 
 Note that `lazyService` is aware when it's being attached to a service and doesn't need to be provided a notify function.
 
+There is also a decorator for subscribing in another service:
+
+```ts
+import { service } from "wc-services/service";
+
+export default MyService extends Service {
+    @service(OtherService)
+    declare otherService: OtherService;
+
+    changeText() {
+        this.text = "bar";
+        this.notify();
+    }
+}
+```
+
+The decorator automatically subscribes to the other service and calls `this.notify()` when it changes. It also cleans up the subscription when the host service is destroyed.
+
 ## Notes on Reactivity and Service lifecycle
 
 Right now reactivity notifications are scheduled and multiple notifications are deduped. Also, to avoid circular dependency issues, services are lazily retrieved when they are accessed.
 
-Services are meant to be long lived and should persist through the life of an application.
+It's important to note that each consumer of services will be notified once from a service if there is a notification, but we aren't guaranteed to be notified by the service where the notification came from.
+
+```
+  Service A          Service B          Service C
+  (Change!)             │                  │
+     │                  │                  │
+     │  notify()        │                  │
+     ├───────────────>>>┤                  │
+     │                  │  notify()        │
+     │                  ├───────────────>>>┤
+     │                  │                  │
+     ▼                  ▼                  ▼
+  ┌─────────────────────────────────────────────┐
+  │             Notification Dedup              │
+  │                                             │
+  │    (Check to make sure the consumer/host    │
+  │        hasn't already been notified.        │
+  │                     If not, notify!)        │
+  │                                             │
+  └─────────────────────────────────────────────┘
+                      │
+                      ▼
+               ┌─────────────┐
+               │  Consumer   │
+               │             │
+               │  notified   │
+               │  once, but  │
+               │  which      │
+               │  service?   │
+               └─────────────┘
+```
+
+In the example above, Service A notifies Service B, which then notifies Service C. The consumer is subscribed to all three. Even though all three services triggered notifications, the consumer is only called once — and it may be from any of the three. The consumer should treat a notification as "something changed" rather than "this specific service changed."
 
 ## Service Provider Class
 
-The service provider class allows us to set up services without including the custom element on the page. This is useful in tests. It also provides some methods to set up mocks for services and a way to reset services. Example to come.
+The `ServiceProvider` manages all service instances. Call `ServiceProvider.setup()` at the entry point of your application. It also provides methods to set up mocks for services and a way to reset services, which is useful in tests. See the test files to see this in action.

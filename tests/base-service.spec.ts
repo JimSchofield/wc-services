@@ -66,7 +66,7 @@ describe("Service", () => {
     expect(callback).toHaveBeenCalledTimes(1);
 
     // Wait for microtask to clear the notification set
-    await new Promise((resolve) => queueMicrotask(resolve));
+    await new Promise<void>((resolve) => queueMicrotask(resolve));
 
     service.notify();
     expect(callback).toHaveBeenCalledTimes(2);

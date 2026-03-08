@@ -90,7 +90,7 @@ describe("Integration", () => {
     outer.inner.data = "world";
 
     // Wait for microtask to clear
-    await new Promise((resolve) => queueMicrotask(resolve));
+    await new Promise<void>((resolve) => queueMicrotask(resolve));
 
     // OuterService should have been notified because inner's notify propagates to outer
     expect(outerCallback).toHaveBeenCalled();
@@ -216,7 +216,7 @@ describe("Integration", () => {
     // Access child to trigger lazy init
     parent.child.value = 42;
 
-    await new Promise((resolve) => queueMicrotask(resolve));
+    await new Promise<void>((resolve) => queueMicrotask(resolve));
 
     expect(parentCallback).toHaveBeenCalled();
     expect(parent.child.value).toBe(42);
@@ -238,7 +238,7 @@ describe("Integration", () => {
 
     host.dep.value = "changed";
 
-    await new Promise((resolve) => queueMicrotask(resolve));
+    await new Promise<void>((resolve) => queueMicrotask(resolve));
 
     expect(hostCallback).toHaveBeenCalled();
     expect(host.dep.value).toBe("changed");

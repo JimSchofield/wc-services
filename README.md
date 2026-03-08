@@ -10,7 +10,6 @@ Features:
 - The `@reactive` decorator turns service properties into auto-notifying setters with zero boilerplate
 - The `@service` decorators make subscribing with vanilla web components, lit web components, or just other services easy
 - Services can subscribe to other services with automatic lifecycle management
-- Build in service support
 
 This is a work in progress. There will be many breaking changes and API changes.
 

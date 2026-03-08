@@ -22,6 +22,10 @@
     "./service": {
       "import": "./dist/decorators/service-to-service.js",
       "types": "./dist/decorators/service-to-service.d.ts"
+    },
+    "./react": {
+      "import": "./dist/react/index.js",
+      "types": "./dist/react/index.d.ts"
     }
   },
   "scripts": {
@@ -34,20 +38,37 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.18.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.4",
     "@vitest/browser-playwright": "^4.0.18",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
     "globals": "^15.14.0",
+    "lit": "^3.2.1",
     "prettier": "^3.8.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
     "typescript": "~5.6.2",
     "typescript-eslint": "^8.21.0",
     "vite": "^6.0.5",
     "vite-plugin-dts": "^4.5.0",
     "vitest": "^4.0.18"
   },
+  "peerDependencies": {
+    "lit": "^3.0.0",
+    "react": ">=18.0.0"
+  },
+  "peerDependenciesMeta": {
+    "lit": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    }
+  },
   "dependencies": {
-    "lighterhtml": "^4.2.0",
-    "lit": "^3.2.1"
+    "lighterhtml": "^4.2.0"
   }
 }

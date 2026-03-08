@@ -6,7 +6,7 @@ import { defineLazyProperty } from "./util/lazyProperty";
 export function getService<T extends Service>(
   serviceClass: ConstructorFrom<T>,
 ): T {
-  return getServiceProvider().getService(serviceClass) as T;
+  return getServiceProvider().getService(serviceClass);
 }
 
 export function setService<T extends Service>(

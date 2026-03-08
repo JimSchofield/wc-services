@@ -16,7 +16,7 @@ export default class ServiceProvider {
     (window as any)[SERVICE_PROVIDER_KEY] = this;
   }
 
-  getService(serviceClass: ConstructorFrom<Service>) {
+  getService<T extends Service>(serviceClass: ConstructorFrom<T>): T {
     if (this.services.has(serviceClass)) {
       const classInstance = this.services.get(serviceClass);
 
@@ -24,7 +24,7 @@ export default class ServiceProvider {
         throw new Error("Something went wrong with the map");
       }
 
-      return classInstance;
+      return classInstance as T;
     } else {
       const instance = new serviceClass();
 

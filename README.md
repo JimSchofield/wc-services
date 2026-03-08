@@ -1,6 +1,6 @@
 # wc-services
 
-This package provides a way to use services in all your wonderful web components, vanilla components, framework components, and more.
+his package provides a way to use services in all your wonderful web components, vanilla components, framework components, and more.
 
 Features:
 
@@ -10,7 +10,7 @@ Features:
 - The `@reactive` decorator turns service properties into auto-notifying setters with zero boilerplate
 - The `@service` decorators make subscribing with vanilla web components, lit web components, or just other services easy
 - Services can subscribe to other services with automatic lifecycle management
-- Built-in test support
+- Build in service support
 
 This is a work in progress. There will be many breaking changes and API changes.
 
@@ -31,7 +31,7 @@ export default MyService extends Service {
 }
 ```
 
-In your services, to let components know there's been a state change, call `this.notify()`:
+In your services, to let components know if there's been a state change you will need to call `this.notify()`:
 
 ```js
 export default MyService extends Service {
@@ -51,11 +51,11 @@ export default MyService extends Service {
     _text = "foo";
 
     get text() {
-        return this._text;
+        return text;
     }
 
     set text(val) {
-        this._text = val;
+        this.text = val;
         this.notify();
     }
 
@@ -80,16 +80,16 @@ export default MyService extends Service {
 
 > **NOTE**: You must have `"useDefineForClassFields": false,` set in your typescript configuration for this decorator to work
 
-## Subscribing to a service
+## Suscribing to a service:
 
 ### `lazyService` function
 
-The `lazyService` function sets up a service as a property on your component. The service is not instantiated until the host component actually accesses the property. It accepts four parameters:
+The `lazyService` function sets up a service as a property on your component. The service is not instantiated until the host component actually accesses the property. It accepts four parameters
 
 1. `host: any` - the host that is calling for the service
 2. `class: Constructor` - The class definition for the service you want to get
-3. `property: PropertyKey` - The property on the host that the service should be saved to
-4. `notify: () => void` - A callback called when the service updates
+3. `property: ProperyKey` - The property on the host that the store should be saved to
+4. `notify: () => void` - An callback called when the service updates
 
 For example, in a vanilla web component, it may look like this:
 
@@ -113,7 +113,7 @@ export default MyComponent extends HTMLElement {
 For ergonomics, if you have decorators available, there is a `@service` decorator for vanilla web components. It sets up the service subscription on connect and tears it down on disconnect:
 
 ```ts
-import { service } from "wc-services/vanilla";
+import { service } from "wc-services/decorators";
 
 export default MyComponent extends HTMLElement {
     @service(MyService, (host) => host.update())
@@ -127,10 +127,10 @@ export default MyComponent extends HTMLElement {
 
 ### Subscribing in a Lit web component
 
-For Lit, there is a decorator that handles setup and teardown using a Lit controller.
+We also have Lit we have a decorator which handles setup and teardown using a lit controller.
 
 ```ts
-import { service } from "wc-services/lit";
+import { service } "wc-services/lit";
 
 export default MyComponent extends LitElement {
     @service(MyService)

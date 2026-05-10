@@ -1,6 +1,6 @@
 # wc-services
 
-his package provides a way to use services in all your wonderful web components, vanilla components, framework components, and more.
+This package provides a way to use services in all your wonderful web components, vanilla components, framework components, and more.
 
 Features:
 
